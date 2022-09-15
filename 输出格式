@@ -1,0 +1,66 @@
+---
+输出格式
+---
+
+通过各种所谓的报错格式器，PHPStan 支持不同的输出格式。
+
+你可以按照以下关键词给 `analyse` 命令传 `--error-format=X` 以控制输出：
+
+- `table`: 默认值。把报错按文件分类，并带有颜色。供人类食用。此外，`table` 格式器 会检测它是否在持续集成环境中运行，例如 GitHub Actions 和 TeamCity，除了原有的内容，它还会以该环境的特定格式输出报错。
+- `raw`: 每行显示一个错误信息，包括文件路径、行号和错误描述。
+- `checkstyle`: 创建一个和 checkstyle.xml 兼容的输出。注意你必须把输出信息重定向到一个文件，以便接下来处理报错。
+- `json`: 创建一个没有空格的 json 压缩文件。注意你必须把输出信息重定向到一个文件，以便接下来处理报错。
+- `prettyJson`: 创建一个人类可读的带有空格和缩进的 json 输出。 注意你必须把输出信息重定向到一个文件，以便接下来处理报错。
+- `junit`: 创建一个和 JUnit 兼容的输出。注意你必须把输出信息重定向到一个文件，以便接下来处理报错。
+- `github`: 创建一个和 GitHub Actions 兼容的输出。
+- `gitlab`: 创建一个用于在 GitLab 上 处理合并请求(Merge Request)时的代码质量小部件的格式。
+- `teamcity`: 创建一个和 TeamCity 兼容的输出。
+
+你也可以实现你自定义的报错格式器。 [了解更多 »](/developing-extensions/error-formatters)
+
+你可以在配置里改变默认的报错格式。 [Learn how »](/config-reference#errorformat)
+
+在编辑器里打开文件
+--------------
+
+默认的 `table` 格式有一个配置参数 `editorUrl`，它可以让你指定一个带有占位符的 URL ，这个 URL 会被打印在错误信息旁。
+
+```
+ ------ -------------------------------------------------------------------
+  Line   test.php
+ ------ -------------------------------------------------------------------
+  3      Parameter #1 (stdClass) of echo cannot be converted to string.
+         ✏️  phpstorm://open?file=/home/dev/test.php&line=3
+ ------ -------------------------------------------------------------------
+```
+
+也可以在 [配置文件](/config-reference) 里这么设置：
+
+```neon
+parameters:
+	editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
+```
+
+常用编辑器的 URL 示例:
+
+* PhpStorm: `'phpstorm://open?file=%%file%%&line=%%line%%'`
+* Visual Studio Code: `'vscode://file/%%file%%:%%line%%'`
+* Atom: `'atom://core/open/file?filename=%%file%%&line=%%line%%'`
+
+这个参数最有可能在 [你的本地配置文件](/config-reference#multiple-files) 里设置，这样它不会被提交到版本库里。常见模式是把特定项目的 `phpstan.neon.dist` 分享给项目里的所有人, 并把包括 `phpstan.neon.dist` 的 `phpstan.neon` 添加到 *.gitignored* 文件，然后每个开发者自己指定这个参数。
+
+```neon
+includes:
+	- phpstan.neon.dist
+
+parameters:
+	editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
+```
+
+为了使文本在你的终端里真的可以点击，你可能需要在系统里注册协议；有关示例参见 [eclemens/atom-url-handler](https://github.com/eclemens/atom-url-handler) 。
+
+在 PHPStan 1.7.15 可用
+
+如果你在 Docker（或其他虚拟化工具) 里运行 PHPStan，你可能需要使用 `%relFile%` 而不是 `%file%`。 这将基于当前工作目录使用文件。 `editorUrl` 后面应该类似于： `phpstorm://open?file=/path/to/your/project/%%relFile%%&line=%%line%%`。
+
+因为相同项目下的团队成员可能有不同的项目绝对路径，常见项目的设置里，特定机器的 `phpstan.neon` 的 `editorUrl` 参数应该和 [`phpstan.neon.dist` 配对使用](/config-reference#multiple-files)。
