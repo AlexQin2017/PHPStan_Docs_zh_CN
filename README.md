@@ -19,3 +19,4 @@
 > 目前只翻译了用户指南(User Guide)，其他页面慢慢更新。
 
 [原文链接](https://phpstan.org/user-guide/getting-started)
+
